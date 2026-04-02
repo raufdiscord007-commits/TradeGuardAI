@@ -1,0 +1,411 @@
+// Prisma Schema for TradeGuardAI
+// Custom authentication with Passport.js + Google OAuth 2.0
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USER AUTHENTICATION
+// ============================================
+
+/// User account - supports email/password and Google OAuth
+model User {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  email         String    @unique
+  passwordHash  String?   // null for Google OAuth users
+  firstName     String?
+  lastName      String?
+  googleId      String?   // Removed @unique - will use sparse index via MongoDB directly
+  role          UserRole  @default(USER)
+  emailVerified Boolean   @default(false)
+  lastLogin     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  portfolioHoldings PortfolioHolding[]
+  transactions      Transaction[]
+  preferences       UserPreferences?
+  watchlists        Watchlist[]
+  bookmarks         UserBookmark[]
+  readingProgress   ReadingProgress[]
+  priceAlerts       PriceAlert[]
+  refreshTokens     RefreshToken[]
+  subscription      Subscription?
+
+  // Sparse unique index on googleId (allows multiple nulls)
+  @@index([googleId])
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+// ============================================
+// SUBSCRIPTION & BILLING
+// ============================================
+
+/// User subscription for tier-based access control
+model Subscription {
+  id                   String             @id @default(auto()) @map("_id") @db.ObjectId
+  userId               String             @unique @db.ObjectId
+  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planTier             PlanTier           @default(FREE)
+  status               SubscriptionStatus @default(ACTIVE)
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  stripePriceId        String?
+  currentPeriodStart   DateTime?
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean            @default(false)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  // Index for faster lookups by Stripe IDs (without unique constraint)
+  @@index([stripeCustomerId])
+  @@index([stripeSubscriptionId])
+}
+
+enum PlanTier {
+  FREE
+  PRO
+  API_PLAN
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  TRIALING
+  INCOMPLETE
+}
+
+/// Stores refresh tokens for JWT authentication
+model RefreshToken {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  token     String   @unique
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+/// Verification codes for email verification and password reset
+model VerificationCode {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String
+  code      String
+  type      CodeType @default(REGISTRATION)
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([email, code])
+  @@index([expiresAt])
+}
+
+enum CodeType {
+  REGISTRATION
+  PASSWORD_RESET
+  SET_PASSWORD
+  LINK_GOOGLE
+}
+
+// ============================================
+// PORTFOLIO MANAGEMENT
+// ============================================
+
+/// User's cryptocurrency holdings
+model PortfolioHolding {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String   @db.ObjectId
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cryptoSymbol    String   // e.g., "BTC", "ETH"
+  amount          Float
+  averageBuyPrice Float?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([userId, cryptoSymbol])
+  @@index([userId])
+}
+
+/// Transaction history for portfolio
+model Transaction {
+  id              String          @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String          @db.ObjectId
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cryptoSymbol    String
+  type            TransactionType
+  amount          Float
+  pricePerUnit    Float
+  totalValue      Float
+  fee             Float?
+  notes           String?
+  transactionDate DateTime        @default(now())
+  createdAt       DateTime        @default(now())
+
+  @@index([userId])
+  @@index([cryptoSymbol])
+}
+
+enum TransactionType {
+  BUY
+  SELL
+  TRANSFER_IN
+  TRANSFER_OUT
+}
+
+// ============================================
+// USER PREFERENCES & WATCHLIST
+// ============================================
+
+/// User preferences
+model UserPreferences {
+  id                   String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId               String   @unique @db.ObjectId
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  theme                String   @default("light")
+  currency             String   @default("USD")
+  timezone             String?
+  notificationsEnabled Boolean  @default(true)
+  emailAlerts          Boolean  @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+/// User's watchlist of cryptocurrencies
+model Watchlist {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String   @db.ObjectId
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cryptoSymbol String
+  addedAt      DateTime @default(now())
+
+  @@unique([userId, cryptoSymbol])
+  @@index([userId])
+}
+
+// ============================================
+// AI PREDICTIONS
+// ============================================
+
+/// AI-generated price predictions
+model Prediction {
+  id              String         @id @default(auto()) @map("_id") @db.ObjectId
+  cryptoSymbol    String
+  predictionType  PredictionType
+  confidenceScore Float          // 0-100
+  currentPrice    Float
+  predictedPrice  Float?
+  timeHorizon     String         // e.g., "1h", "24h", "7d"
+  stopLoss        Float?
+  takeProfit      Float?
+  modelVersion    String?
+  featuresUsed    Json?          // Store technical indicators used
+  validUntil      DateTime
+  createdAt       DateTime       @default(now())
+
+  @@index([cryptoSymbol])
+  @@index([createdAt])
+}
+
+enum PredictionType {
+  BULLISH
+  BEARISH
+  NEUTRAL
+}
+
+/// Track prediction accuracy
+model PredictionResult {
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  predictionId       String   @db.ObjectId
+  actualPrice        Float
+  wasCorrect         Boolean
+  priceChangePercent Float
+  evaluatedAt        DateTime @default(now())
+
+  @@index([predictionId])
+}
+
+// ============================================
+// RESOURCES: Educational Content
+// ============================================
+
+/// Learning articles with video content (blogs)
+model LearningArticle {
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  title        String
+  slug         String    @unique
+  excerpt      String    // Short preview text
+  content      String    // Full article content (markdown/HTML)
+  youtubeUrl   String?   // YouTube video embed URL
+  thumbnailUrl String?   // Article thumbnail image
+  category     String    // e.g., "beginner", "technical-analysis", "trading-strategies", "market-analysis"
+  tags         String[]  // Array of tags for filtering
+  readTime     Int       // Estimated read time in minutes
+  authorName   String?
+  authorAvatar String?
+  difficulty   String    @default("beginner") // beginner, intermediate, advanced
+  published    Boolean   @default(false)
+  featured     Boolean   @default(false) // Show on featured section
+  viewCount    Int       @default(0)
+  publishedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([category])
+  @@index([published])
+  @@index([featured])
+  @@index([difficulty])
+}
+
+/// Chart patterns with images and explanations
+model ChartPattern {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  slug         String   @unique
+  imageUrl     String   // Pattern image URL
+  description  String   // Full description/explanation
+  excerpt      String   // Short preview text
+  patternType  String   // bullish, bearish, continuation, reversal
+  difficulty   String   @default("beginner") // beginner, intermediate, advanced
+  keyPoints    String[] // Array of key learning points
+  howToTrade   String?  // Trading strategy for this pattern
+  examples     String[] // Array of real-world example image URLs
+  reliability  String   @default("medium") // low, medium, high
+  published    Boolean  @default(false)
+  viewCount    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([patternType])
+  @@index([difficulty])
+  @@index([published])
+}
+
+/// User bookmarks for articles and patterns
+model UserBookmark {
+  id           String       @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String       @db.ObjectId
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resourceType ResourceType // article or pattern
+  resourceId   String       @db.ObjectId // ID of the bookmarked resource
+  addedAt      DateTime     @default(now())
+
+  @@unique([userId, resourceType, resourceId])
+  @@index([userId])
+  @@index([resourceType])
+}
+
+enum ResourceType {
+  ARTICLE
+  PATTERN
+}
+
+/// User reading progress (optional - tracks which articles have been read)
+model ReadingProgress {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  articleId String   @db.ObjectId
+  completed Boolean  @default(false)
+  progress  Int      @default(0) // Percentage 0-100
+  lastReadAt DateTime @default(now())
+
+  @@unique([userId, articleId])
+  @@index([userId])
+}
+
+// ============================================
+// CACHE: Cryptocurrency Data Cache
+// ============================================
+
+/// Cache for cryptocurrency data (reduces external API calls)
+model CryptoCache {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  symbol       String   @unique
+  name         String
+  currentPrice Float
+  marketCap    Float?
+  volume24h    Float?
+  change1h     Float?
+  change24h    Float?
+  change7d     Float?
+  rank         Int?
+  logoUrl      String?
+  lastUpdated  DateTime @default(now())
+
+  @@index([rank])
+  @@index([lastUpdated])
+}
+
+// ============================================
+// ALERTS: Price Alerts (Future Feature)
+// ============================================
+
+/// User-defined price alerts
+model PriceAlert {
+  id           String         @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String         @db.ObjectId
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cryptoSymbol String
+  targetPrice  Float
+  condition    AlertCondition
+  isActive     Boolean        @default(true)
+  triggeredAt  DateTime?
+  createdAt    DateTime       @default(now())
+
+  @@index([userId])
+  @@index([cryptoSymbol, isActive])
+}
+
+enum AlertCondition {
+  ABOVE
+  BELOW
+}
+
+// ============================================
+// ADMIN: Audit Logging
+// ============================================
+
+/// Tracks all admin actions for accountability
+model AdminAuditLog {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  adminEmail  String   // Email of admin who performed action
+  adminId     String   @db.ObjectId // User ID of admin
+  action      String   // CREATE, UPDATE, DELETE
+  targetType  String   // USER, ARTICLE, PATTERN
+  targetId    String   // ID of affected resource
+  targetName  String   // Name/title for display
+  changes     Json?    // { before: {...}, after: {...} }
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  @@index([adminEmail])
+  @@index([targetType])
+  @@index([action])
+  @@index([createdAt])
+}
+model PortfolioItem {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId 
+  coinId    String   // Example: "bitcoin" (We need this exact name for CoinGecko)
+  symbol    String   // Example: "BTC"
+  balance   Float    // Example: 0.5 (How much of the coin they actually own)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

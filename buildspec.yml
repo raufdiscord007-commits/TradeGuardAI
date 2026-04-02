@@ -1,0 +1,35 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+    commands:
+      - echo Installing dependencies...
+  
+  pre_build:
+    commands:
+      - echo Installing Frontend dependencies...
+      - cd $CODEBUILD_SRC_DIR/Frontend && npm ci
+      - echo Installing Backend dependencies...
+      - cd $CODEBUILD_SRC_DIR/Backend && npm ci
+  
+  build:
+    commands:
+      - echo Building Frontend...
+      - cd $CODEBUILD_SRC_DIR/Frontend
+      - export VITE_API_URL="RUNTIME_ORIGIN"
+      - npm run build
+      - echo Generating Prisma client...
+      - cd $CODEBUILD_SRC_DIR/Backend && npm run db:generate
+  
+  post_build:
+    commands:
+      - echo Build completed on `date`
+
+artifacts:
+  files:
+    - '**/*'
+  exclude-paths:
+    - 'Frontend/node_modules/**/*'
+    - 'Backend/node_modules/**/*'

@@ -1,0 +1,1494 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Roboto', system-ui, Avenir, Helvetica, Arial, sans-serif !important;
+}
+
+html {
+  width: 100%;
+  height: 100%;
+  font-family: 'Roboto', system-ui, Avenir, Helvetica, Arial, sans-serif !important;
+}
+
+:root {
+  font-family: 'Roboto', system-ui, Avenir, Helvetica, Arial, sans-serif !important;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  min-width: 320px;
+  font-family: 'Roboto', system-ui, Avenir, Helvetica, Arial, sans-serif !important;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  font-family: 'Roboto', system-ui, Avenir, Helvetica, Arial, sans-serif !important;
+}
+
+/* ============================================
+   Page Layout - Fix Scrolling Issues
+   ============================================ */
+
+/* Default page-wrapper allows scrolling for static pages */
+.page-wrapper {
+  width: 100% !important;
+  min-height: 100vh !important;
+}
+
+/* main-wrapper without is-dashboard should scroll normally */
+.main-wrapper:not(.is-dashboard) {
+  min-height: 100vh !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* Only lock scrolling when dashboard is present */
+.page-wrapper:has(.main-wrapper.is-dashboard) {
+  height: 100vh !important;
+  max-height: 100vh !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.page-wrapper > .main-wrapper.is-dashboard {
+  flex: 1 1 0 !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  max-height: 100vh !important;
+  display: grid !important;
+  grid-template-columns: minmax(200px, 280px) 1fr !important;
+  overflow: hidden !important;
+}
+
+.main-wrapper.is-dashboard > .dashboard_main_wrapper {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 0 !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  max-height: 100vh !important;
+  overflow: hidden !important;
+}
+
+/* Direct child dashboard_main_app */
+.dashboard_main_wrapper > .dashboard_main_app {
+  flex: 1 1 0 !important;
+  min-height: 0 !important;
+  max-height: calc(100vh - 70px) !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: 1.5rem !important;
+}
+
+/* dashboard_main_content as direct child - for profile/detail pages */
+.dashboard_main_wrapper > .dashboard_main_content {
+  flex: 1 1 0 !important;
+  min-height: 0 !important;
+  max-height: calc(100vh - 70px) !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: 1.5rem !important;
+  display: grid !important;
+  grid-template-columns: 1fr 320px !important;
+  gap: 1.5rem !important;
+  align-items: start !important;
+}
+
+/* dashboard_main_app inside dashboard_main_content */
+.dashboard_main_content > .dashboard_main_app {
+  min-height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  padding: 0 !important;
+}
+
+/* Profile CTA sidebar */
+.dashboard_main_cta_wrapper {
+  width: 100% !important;
+  max-width: 320px !important;
+}
+
+/* Navbar should not flex-grow */
+.navbar_app_component {
+  flex-shrink: 0 !important;
+}
+
+/* Mobile responsiveness for dashboard */
+@media screen and (max-width: 991px) {
+  .page-wrapper > .main-wrapper.is-dashboard {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ============================================
+   Custom Scrollbar Styles (Global)
+   ============================================ */
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #c5ccd6 0%, #a8b2bf 100%);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #9aa5b3 0%, #7d8a9a 100%);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, #1e65fa 0%, #1553d4 100%);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #b8c1cc transparent;
+}
+
+/* Thin scrollbar variant for smaller containers */
+.thin-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 5px;
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* Hidden scrollbar but still scrollable */
+.hidden-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hidden-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Spinner animation for loading states */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================
+   Profile Page Styles
+   ============================================ */
+
+.profile-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.profile-card {
+  margin-bottom: 0;
+}
+
+/* Override the min-height on card headers for profile page */
+.profile-card .card_app_header {
+  min-height: auto;
+  align-items: center;
+}
+
+.profile-card-body {
+  padding: 1.25rem;
+  width: 100%;
+}
+
+.profile-card-body.no-padding {
+  padding: 0;
+}
+
+.profile-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.profile-row.with-border {
+  border-bottom: 1px solid var(--border-color--border-primary, #e5e5e7);
+}
+
+.profile-row--danger {
+  background-color: rgba(239, 83, 80, 0.04);
+}
+
+.profile-row-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.profile-label {
+  margin-bottom: 0.25rem;
+}
+
+.profile-value-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.profile-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.profile-name-inputs {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.profile-name-inputs input {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-edit-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.profile-provider-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.profile-provider-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: var(--background-grey, #fafbfc);
+  border-radius: 0.5rem;
+  flex-shrink: 0;
+}
+
+.profile-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.profile-member-id {
+  font-family: monospace;
+  font-size: 0.875rem;
+  word-break: break-all;
+}
+
+.profile-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.profile-status-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #26a69a;
+  border-radius: 50%;
+}
+
+.profile-status-text {
+  color: #26a69a;
+}
+
+.profile-btn-danger {
+  background-color: #ef5350 !important;
+  color: white !important;
+}
+
+.profile-btn-danger:hover {
+  background-color: #d32f2f !important;
+}
+
+/* Subscription Section Styles */
+.profile-subscription-current {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  border-radius: 0.75rem;
+  border: 1px solid #e5e5e7;
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+.profile-subscription-badge-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.profile-subscription-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid;
+  font-size: 0.9375rem;
+}
+
+.profile-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.profile-subscription-info {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.profile-info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.profile-subscription-actions {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e5e7;
+}
+
+.profile-error-message {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 0.5rem;
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin: 1rem 0;
+}
+
+.profile-subscription-plans {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e5e7;
+}
+
+.profile-plan-card {
+  background: white;
+  border: 2px solid #e5e5e7;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+  margin-bottom: 1rem;
+}
+
+.profile-plan-card:hover {
+  border-color: #1e65fa;
+  box-shadow: 0 4px 12px rgba(30, 101, 250, 0.1);
+}
+
+.profile-plan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.profile-plan-name {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.profile-plan-name h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #323539;
+}
+
+.profile-plan-popular {
+  background: linear-gradient(135deg, #1e65fa 0%, #4a7dfc 100%);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.profile-plan-price {
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.profile-plan-amount {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #323539;
+}
+
+.profile-plan-period {
+  font-size: 0.875rem;
+  color: #858c95;
+}
+
+.profile-plan-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.profile-plan-features li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #323539;
+}
+
+.profile-view-all-plans {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e5e7;
+}
+
+.profile-subscription-upgrade {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e5e7;
+}
+
+.profile-upgrade-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);
+  border: 1px solid #bfdbfe;
+  border-radius: 0.75rem;
+}
+
+.profile-upgrade-content h3 {
+  margin: 0 0 0.25rem 0;
+}
+
+.profile-upgrade-content p {
+  margin: 0;
+}
+
+/* Responsive styles for profile page */
+@media screen and (max-width: 767px) {
+  .profile-content {
+    max-width: 100%;
+  }
+
+  .profile-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .profile-row > button {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+
+  .profile-name-inputs {
+    flex-direction: column;
+  }
+
+  .profile-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-provider-info {
+    width: 100%;
+  }
+
+  .profile-upgrade-banner {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .profile-upgrade-banner button {
+    width: 100%;
+  }
+
+}
+
+/* ============================================
+   Predictions Page Styles
+   ============================================ */
+
+.predictions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.prediction-card {
+  padding: 1.5rem;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.prediction-card--active {
+  cursor: pointer;
+}
+
+.prediction-card--active:hover {
+  border-color: var(--base-color-brand--color-primary) !important;
+  box-shadow: 0 4px 12px rgba(30, 101, 250, 0.15);
+}
+
+.prediction-card--disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.prediction-badge {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background-color: var(--text-color--text-secondary);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.prediction-card-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.prediction-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.prediction-card-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.prediction-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--text-color--text-secondary);
+}
+
+.prediction-status-dot--active {
+  background-color: var(--color-green);
+}
+
+.prediction-card-footer {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color--border-primary);
+}
+
+.predictions-info-card {
+  padding: 1.5rem;
+  background-color: var(--background-grey) !important;
+  border: none !important;
+}
+
+.predictions-info-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.predictions-info-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--base-color-brand--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Responsive styles for predictions page */
+@media screen and (max-width: 991px) {
+  .predictions-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .predictions-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .prediction-card {
+    padding: 1.25rem;
+  }
+
+  .prediction-card-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .predictions-info-card {
+    padding: 1.25rem;
+  }
+
+  .predictions-info-content {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .predictions-info-icon {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* ============================================
+   Prediction Detail Page Styles
+   ============================================ */
+
+.prediction-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.prediction-detail-header {
+  min-height: auto;
+}
+
+.prediction-recommendation-header {
+  min-height: auto;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.prediction-coin-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.prediction-coin-icon-sm {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.prediction-detail-body {
+  padding: 1.25rem;
+}
+
+.prediction-price-section {
+  margin-bottom: 1.5rem;
+}
+
+.prediction-price-value {
+  font-size: 2.25rem;
+  line-height: 1;
+}
+
+.prediction-confidence-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.prediction-progress-bar {
+  flex: 1;
+  height: 8px;
+  background-color: #e5e5e7;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.prediction-progress-fill {
+  height: 100%;
+  background-color: var(--color-green);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.prediction-last-updated {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color--border-primary);
+}
+
+.prediction-steps-section {
+  margin-bottom: 1.5rem;
+}
+
+.prediction-steps-title {
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-color--text-secondary);
+}
+
+.prediction-steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.prediction-step-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background-color: var(--background-grey);
+  border-radius: 0.5rem;
+  gap: 0.5rem;
+}
+
+.prediction-reason {
+  padding: 1rem;
+  background-color: rgba(30, 101, 250, 0.05);
+  border-radius: 0.5rem;
+  border-left: 3px solid var(--base-color-brand--color-primary);
+}
+
+.prediction-scan-card {
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  overflow: visible;
+  min-height: auto;
+}
+
+.prediction-scan-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.prediction-scan-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: rgba(30, 101, 250, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Override card_app_wrapper overflow for prediction scan card */
+.card_app_wrapper.prediction-scan-card {
+  overflow: visible;
+}
+
+.prediction-refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.prediction-disclaimer {
+  padding: 1rem;
+  background-color: rgba(239, 83, 80, 0.05);
+  border-radius: 0.5rem;
+  border: 1px solid rgba(239, 83, 80, 0.2);
+}
+
+/* Spinning animation for loading/refresh */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+/* Responsive styles for prediction detail page */
+@media screen and (max-width: 991px) {
+  .prediction-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .prediction-detail-body {
+    padding: 1rem;
+  }
+
+  .prediction-price-value {
+    font-size: 1.75rem;
+  }
+
+  .prediction-step-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .prediction-scan-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .prediction-scan-info {
+    justify-content: flex-start;
+  }
+
+  .prediction-refresh-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ============================================
+   Mobile Navbar Styles
+   ============================================ */
+
+/* Burger menu animation */
+.menu-icon_line-top,
+.menu-icon_line-middle,
+.menu-icon_line-bottom {
+  transition: transform 0.3s ease, opacity 0.3s ease, width 0.3s ease;
+  transform-origin: center;
+}
+
+/* Animated burger icon when menu is open */
+.w-nav-button.w--open .menu-icon_line-top {
+  transform: translateY(8px) rotate(45deg);
+}
+
+.w-nav-button.w--open .menu-icon_line-middle {
+  opacity: 0;
+  width: 0;
+}
+
+.w-nav-button.w--open .menu-icon_line-bottom {
+  transform: translateY(-8px) rotate(-45deg);
+}
+
+/* Mobile menu visibility */
+@media screen and (max-width: 991px) {
+  .w-nav[data-collapse='medium'] .w-nav-menu {
+    display: none;
+  }
+  
+  .w-nav[data-collapse='medium'] .w-nav-menu[data-nav-menu-open] {
+    display: flex !important;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    z-index: 9999;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .w-nav[data-collapse='medium'] .w-nav-button {
+    display: flex !important;
+  }
+
+  .navbar_menu-button {
+    display: flex !important;
+  }
+
+  /* Fix link display on mobile */
+  .navbar_menu[data-nav-menu-open] .navbar_link {
+    display: block !important;
+    width: 100% !important;
+    color: var(--text-color--text-primary) !important;
+    padding: 0.75rem 5% !important;
+    font-size: 1.125rem !important;
+    text-decoration: none !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  }
+
+  .navbar_menu[data-nav-menu-open] .navbar_link:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+
+  .navbar_menu[data-nav-menu-open] .navbar_menu-buttons {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+    margin-top: 1.5rem !important;
+    padding: 0 5% !important;
+  }
+
+  .navbar_menu[data-nav-menu-open] .navbar_menu-buttons .button {
+    display: block !important;
+    width: 100% !important;
+    text-align: center !important;
+  }
+}
+
+/* ============================================
+   Crypto Detail Page Responsive Styles
+   ============================================ */
+
+/* Tablet breakpoint */
+@media screen and (max-width: 991px) {
+  /* Profile page grid fix - stack CTA below content */
+  .dashboard_main_content {
+    grid-template-columns: 1fr !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1.25rem;
+  }
+
+  .dashboard_main_content > .dashboard_main_app {
+    width: 100%;
+  }
+
+  .dashboard_main_content > .dashboard_main_cta_wrapper {
+    width: 100%;
+    position: relative !important;
+    top: 0 !important;
+  }
+
+  /* Crypto detail page - stack chart/market summary and orderbook/trades */
+  .dashboard_main_content > .dashboard_main_flex {
+    width: 100%;
+  }
+
+  .dashboard_main_content > .content_main_flex {
+    width: 100%;
+    flex-direction: row;
+  }
+
+  .dashboard_main_flex {
+    flex-direction: column;
+  }
+
+  .market-summary_main_wrapper {
+    width: 100%;
+  }
+
+  /* Order book and trades side by side on tablet */
+  .content_main_flex {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+  }
+
+  .content_main_flex > * {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Price change grid - 3 columns on tablet */
+  .market-summary_main_price_change {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Mobile breakpoint */
+@media screen and (max-width: 767px) {
+  .dashboard_main_app {
+    padding: 1rem !important;
+  }
+
+  .dashboard_main_content {
+    padding: 0;
+    gap: 1rem;
+  }
+
+  .dashboard_main_flex {
+    gap: 1rem;
+  }
+
+  /* Stack order book and trades vertically on mobile */
+  .content_main_flex {
+    flex-direction: column !important;
+    gap: 1rem;
+  }
+
+  .content_main_flex > * {
+    width: 100% !important;
+    flex: none !important;
+  }
+
+  /* Price change grid - 2 columns on mobile */
+  .market-summary_main_price_change {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .market-summary_main_price_item {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .market-summary_main_heading {
+    font-size: 1.5rem;
+  }
+
+  /* Market summary content */
+  .market-summary_main_content {
+    gap: 0.75rem;
+  }
+
+  .market-summary_main_item {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .market-summary_main_right {
+    max-width: 100%;
+    justify-content: flex-end;
+  }
+
+  /* Cards */
+  .card_app_wrapper {
+    border-radius: 0.75rem;
+  }
+
+  .card_app_header {
+    padding: 0.875rem 1rem;
+  }
+
+  .card_app_body {
+    padding: 1rem;
+  }
+
+  /* Back button */
+  .button.is-small.is-icon {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* Small mobile */
+@media screen and (max-width: 479px) {
+  /* Price change grid - single column on very small screens */
+  .market-summary_main_price_change {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .market-summary_main_price_item:nth-child(even) {
+    border-right: none;
+  }
+
+  .market-summary_main_converter_input {
+    font-size: 1rem;
+    padding: 0.75rem;
+  }
+
+  /* Profile page specific fixes */
+  .profile-subscription-current {
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  .profile-subscription-badge-wrapper {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .profile-subscription-badge {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .profile-status-badge {
+    align-self: flex-start;
+  }
+}
+
+/* ============================================
+   Profile Page Additional Mobile Fixes
+   ============================================ */
+
+@media screen and (max-width: 767px) {
+  .profile-subscription-current {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .profile-row--danger {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .profile-row--danger > .profile-row-content {
+    width: 100%;
+  }
+
+  .profile-row--danger > button {
+    width: 100%;
+  }
+
+  .profile-card-body {
+    padding: 1rem;
+  }
+
+  .profile-provider-info {
+    flex-wrap: wrap;
+  }
+
+  .profile-subscription-actions {
+    padding-top: 1rem;
+    margin-top: 1rem;
+  }
+
+  .profile-subscription-actions button {
+    width: 100%;
+  }
+
+  .profile-plan-card {
+    padding: 1rem;
+  }
+
+  .profile-plan-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .profile-plan-amount {
+    font-size: 1.5rem;
+  }
+}
+
+/* ============================================
+   Admin Audit Logs - Mobile Card Layout
+   ============================================ */
+
+/* Hide mobile cards on desktop, show table */
+.admin-logs-mobile {
+  display: none;
+}
+
+.admin-logs-desktop {
+  display: block;
+}
+
+/* Mobile Log Cards */
+.admin-log-card {
+  background: white;
+  border: 1px solid #e5e5e7;
+  border-radius: 0.75rem;
+  margin-bottom: 1rem;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.admin-log-card--expanded {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.admin-log-card-header {
+  padding: 1rem;
+  cursor: pointer;
+  position: relative;
+}
+
+.admin-log-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.875rem;
+}
+
+.admin-log-card-time {
+  font-size: 0.75rem;
+  color: #858c95;
+}
+
+.admin-log-card-target {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.admin-log-card-target-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 0.5rem;
+  background: #f5f5f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #858c95;
+  flex-shrink: 0;
+}
+
+.admin-log-card-target-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-log-card-target-type {
+  font-size: 0.6875rem;
+  color: #858c95;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.admin-log-card-target-name {
+  font-size: 0.9375rem;
+  color: #323539;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-log-card-admin {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: #858c95;
+}
+
+.admin-log-card-admin svg {
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+.admin-log-card-expand {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  background: #f5f5f7;
+  border: none;
+  border-radius: 0.375rem;
+  padding: 0.375rem;
+  cursor: pointer;
+  color: #858c95;
+  transition: all 0.2s ease;
+}
+
+.admin-log-card-expand:hover {
+  background: #e5e5e7;
+  color: #323539;
+}
+
+.admin-log-card-details {
+  padding: 1rem;
+  background: #f9fafb;
+  border-top: 1px solid #e5e5e7;
+}
+
+.admin-log-card-details-header {
+  margin-bottom: 0.75rem;
+}
+
+.admin-log-card-details-header h4 {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #323539;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.admin-logs-empty-card {
+  padding: 2rem;
+  text-align: center;
+  color: #858c95;
+}
+
+/* Mobile responsive filters */
+@media screen and (max-width: 767px) {
+  /* Show mobile cards, hide desktop table */
+  .admin-logs-mobile {
+    display: block;
+  }
+
+  .admin-logs-desktop {
+    display: none;
+  }
+
+  /* Filters stack vertically */
+  .admin-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-search {
+    min-width: 100%;
+  }
+
+  .admin-filter-group {
+    width: 100%;
+  }
+
+  .admin-filter-group .custom-select {
+    width: 100%;
+  }
+
+  /* Page header responsive */
+  .admin-page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .admin-page-header .admin-action-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Pagination responsive */
+  .admin-pagination {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .admin-pagination-info {
+    order: 2;
+  }
+
+  .admin-pagination-controls {
+    order: 1;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  /* Smaller action badges on mobile */
+  .admin-action-badge {
+    font-size: 0.6875rem;
+    padding: 0.25rem 0.625rem;
+  }
+
+  /* Changes diff responsive */
+  .admin-changes-grid {
+    gap: 0.75rem;
+  }
+
+  .admin-change-row {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .admin-change-values {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .admin-change-arrow {
+    transform: rotate(90deg);
+    align-self: center;
+  }
+
+  .admin-change-before,
+  .admin-change-after {
+    width: 100%;
+  }
+}
+
+/* Small mobile */
+@media screen and (max-width: 479px) {
+  .admin-log-card-header {
+    padding: 0.875rem;
+  }
+
+  .admin-log-card-target-name {
+    font-size: 0.875rem;
+  }
+
+  .admin-log-card-admin span {
+    font-size: 0.75rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+  }
+}
