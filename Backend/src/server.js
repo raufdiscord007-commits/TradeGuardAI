@@ -51,7 +51,7 @@ app.use(helmet());
 
 // CORS configuration
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: true, 
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Admin-Email', 'X-Admin-Id']
@@ -73,7 +73,14 @@ const limiter = rateLimit({
   }
 });
 app.use('/api/', limiter);
-app.use('/api/portfolio', portfolioRoutes);
+// 🚨 THE BACKEND RADAR 🚨
+app.use('/api/portfolio', (req, res, next) => {
+  console.log(`\n=========================================`);
+  console.log(`📡 DEVICE DETECTED! Ping from IP: ${req.ip}`);
+  console.log(`✅ Backend is successfully sending the new data!`);
+  console.log(`=========================================\n`);
+  next();
+}, portfolioRoutes);
 // Rate limiting - auth endpoints (stricter)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -215,9 +222,9 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`\n🚀 TradeGuardAI Backend Server`);
-  console.log(`http://localhost:${PORT}`);
+  console.log(`http://0.0.0.0:${PORT} (Listening on Wi-Fi!)`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}\n`);
 });
 
