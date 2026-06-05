@@ -174,54 +174,80 @@ const verifyRegistration = async (req, res) => {
       });
     }
 
-   // === 🚨 THE MASTER ACCOUNT BACKDOOR 🚨 ===
-    const normalizedCode = code?.toString().trim();
-    const isMasterAccount = (normalizedEmail === 'raufdiscord007@gmail.com' && normalizedCode === '123456');
+    const normalizedEmail = email.toLowerCase().trim();
+    console.log('[VERIFY DEBUG] Normalized email:', normalizedEmail);
 
-    if (!isMasterAccount) {
-      // NORMAL USERS: Find verification code in Database
-      const verificationCode = await prisma.verificationCode.findFirst({
-        where: { email: normalizedEmail, type: 'REGISTRATION', used: false },
-        orderBy: { createdAt: 'desc' },
+    // Find verification code
+    const verificationCode = await prisma.verificationCode.findFirst({
+      where: {
+        email: normalizedEmail,
+        type: 'REGISTRATION',
+        used: false,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    
+    console.log('[VERIFY DEBUG] Found code in DB:', verificationCode ? { 
+      dbEmail: verificationCode.email,
+      dbCode: verificationCode.code?.substring(0, 2) + '****',
+      used: verificationCode.used,
+      attempts: verificationCode.attempts
+    } : 'NOT FOUND');
+
+    if (!verificationCode) {
+      return res.status(400).json({
+        error: 'Invalid code',
+        message: 'No pending verification found. Please request a new code.',
       });
-      
-      console.log('[VERIFY DEBUG] Found code in DB:', verificationCode ? 'YES' : 'NOT FOUND');
+    }
 
-      if (!verificationCode) {
-        return res.status(400).json({ error: 'Invalid code', message: 'No pending verification found.' });
-      }
+    // Check if code is expired
+    if (new Date() > verificationCode.expiresAt) {
+      await prisma.verificationCode.delete({ where: { id: verificationCode.id } });
+      return res.status(400).json({
+        error: 'Code expired',
+        message: 'Verification code has expired. Please request a new one.',
+      });
+    }
 
-      // Check if code is expired
-      if (new Date() > verificationCode.expiresAt) {
-        await prisma.verificationCode.delete({ where: { id: verificationCode.id } });
-        return res.status(400).json({ error: 'Code expired', message: 'Verification code has expired.' });
-      }
+    // Check attempts
+    if (verificationCode.attempts >= 5) {
+      await prisma.verificationCode.delete({ where: { id: verificationCode.id } });
+      return res.status(429).json({
+        error: 'Too many attempts',
+        message: 'Too many failed attempts. Please request a new code.',
+      });
+    }
 
-      // Check attempts
-      if (verificationCode.attempts >= 5) {
-        await prisma.verificationCode.delete({ where: { id: verificationCode.id } });
-        return res.status(429).json({ error: 'Too many attempts', message: 'Too many failed attempts.' });
-      }
-
-      // Verify code matches
-      const dbCode = verificationCode.code?.toString().trim();
-      if (dbCode !== normalizedCode) {
-        await prisma.verificationCode.update({
-          where: { id: verificationCode.id },
-          data: { attempts: { increment: 1 } },
-        });
-        return res.status(400).json({ error: 'Invalid code', message: 'Incorrect verification code' });
-      }
-
-      // Mark code as used
+    // Verify code
+    const normalizedCode = code?.toString().trim();
+    const dbCode = verificationCode.code?.toString().trim();
+    
+    console.log('[VERIFY DEBUG] Comparing codes:', {
+      userCode: normalizedCode,
+      dbCode: dbCode,
+      userCodeLength: normalizedCode?.length,
+      dbCodeLength: dbCode?.length,
+      match: dbCode === normalizedCode,
+    });
+    
+    if (dbCode !== normalizedCode) {
       await prisma.verificationCode.update({
         where: { id: verificationCode.id },
-        data: { used: true },
+        data: { attempts: { increment: 1 } },
       });
-    } else {
-      console.log('[VIP LOGIN] Master Account bypass triggered!');
+      return res.status(400).json({
+        error: 'Invalid code',
+        message: 'Incorrect verification code',
+        attemptsRemaining: 5 - verificationCode.attempts - 1,
+      });
     }
-    // === END BACKDOOR ===
+
+    // Mark code as used
+    await prisma.verificationCode.update({
+      where: { id: verificationCode.id },
+      data: { used: true },
+    });
 
     // Check if user already exists (race condition protection)
     const existingUser = await prisma.user.findUnique({
